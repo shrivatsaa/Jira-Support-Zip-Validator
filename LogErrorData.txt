@@ -1,5 +1,6 @@
+java.lang.StackOverflowError|Look out for stuck threads and application stalling. Refer https://confluence.atlassian.com/jirakb/jira-applications-stall-due-to-stackoverflowerror-exception-941601100.html
+Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html
 Wait attempt timed out - waited|Look out for indexing and snapshot restore failures. Also look for nodereindexing threads or clustermessagehandler threads timing out waiting for index lock
 Detected frequent flushes|Look out indexing related slowness. Refer https://confluence.atlassian.com/jirakb/jira-indexing-performance-and-lucene-maxrambuffermb-963659203.html
 Bigpipe taking longer than 5s|Look out for cpu usage and other performance issues.
 Unable to obtain a connection from the underlying connection pool|Verify any connection errors, stuck threads, full GCs or system resource overrun. Refer https://confluence.atlassian.com/adminjiraserver073/surviving-connection-closures-861253055.html
-Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html

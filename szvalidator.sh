@@ -3,7 +3,7 @@
 usage="Run the script in the format ./szvalidator.sh <folder name of unzipped support.zip folder>";
 
 FolderPath=$1;
-Logpath=$1;
+Logpath=$FolderPath;
 HealthcheckFile=$FolderPath/healthchecks/healthcheckResults.txt
 ApplicationLogPath=$FolderPath/application-logs/
 CatalinalogPath=$FolderPath/tomcat-logs/
@@ -95,7 +95,7 @@ ValidateGCLog()
       fi
     }
     fi	 
-    printf $combo'Full GC details :\n'$white | tee -a $Logpath/verifier.txt;
+    printf $combo'\nFull GC details :\n'$white | tee -a $Logpath/verifier.txt;
     if [[ $GCFilePath != "" ]] ; then {
       #Check for Full GCs in the GC files.	
       GCcount=$(grep -c "$checkdate.*Full GC" $GCFilePath/*gc* | awk -F: '$2>0{sum+=$2}END{print sum}');
