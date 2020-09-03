@@ -11,6 +11,6 @@ The below would look for all the error messages and other issues for the specifi
 
 ./szvalidator.sh <Unzipped support folder path> <date in YYYY-MM-DD format>
 
-As mentioned earlier add the known error messages followed by the suggestion or related KB, error message in the format of suggestion separated by a pipe. Ex.
+As mentioned earlier add the known error messages followed by the suggestion or related KB in LogErrorDataFile.txt file for future use. Currently its pre-filled with some commonly known problems. Error message to be scanned are entered in the format of Error meessage|suggestion with error message and suggestion separated by a pipe. Ex.
 
 Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html
