@@ -22,11 +22,13 @@ normal=$(tput sgr0)
 
 #List of messages to look for in the application log and corresponding suggestion. This array will be used if LogErrorData.txt file is lost or not available
 messages=(
+"java.lang.StackOverflowError|Look out for stuck threads and application stalling. Refer https://confluence.atlassian.com/jirakb/jira-applications-stall-due-to-stackoverflowerror-exception-941601100.html"
+"Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html"
+"Indexing failed for ISSUE|Indexing errors seen for issues. But this could be owing to issue versioning and rest calls made to deleted issues not yet cleaned up from issue_version table. Verify the logs"
 "Wait attempt timed out - waited|Look out for indexing and snapshot restore failures. Also look for nodereindexing threads or clustermessagehandler threads timing out waiting for index lock"
 "Detected frequent flushes|Look out indexing related slowness. Refer https://confluence.atlassian.com/jirakb/jira-indexing-performance-and-lucene-maxrambuffermb-963659203.html"
 "Bigpipe taking longer than 5s|Look out for cpu usage and other performance issues."
-"Unable to obtain a connection from the underlying connection pool|Verify any connection errors, stuck threads, full GCs or system resource overrun. Refer https://confluence.atlassian.com/adminjiraserver073/surviving-connection-closures-861253055.html"
-"Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html"
+"There was an error getting a DBCP datasource|Verify any connection errors, stuck threads, full GCs or system resource overrun. Refer https://confluence.atlassian.com/adminjiraserver073/surviving-connection-closures-861253055.html"
 )
 
 if [ $# -eq 0 ] ; then
@@ -87,34 +89,35 @@ ValidateGCLog()
 	if [[ NumofGCFiles -gt 0 ]] ; then {
 	   GCFilePath=$GcLogPath1;
 	}
-	else {
+  fi
+
 	NumofGCFiles=$(ls $GcLogPath2/*gc* 2>/dev/null | wc -l);
-	  if [[ NumofGCFiles -gt 0 ]] ; then {
-	    GCFilePath=$GcLogPath2;
-      }
-      fi
-    }
-    fi	 
+	if [[ NumofGCFiles -gt 0 ]] ; then {
+	   GCFilePath=$GcLogPath2;
+  }
+  fi	 
+    
     printf $combo'\nFull GC details :\n'$white | tee -a $Logpath/verifier.txt;
     if [[ $GCFilePath != "" ]] ; then {
       #Check for Full GCs in the GC files.	
-      GCcount=$(grep -c "$checkdate.*Full GC" $GCFilePath/*gc* | awk -F: '$2>0{sum+=$2}END{print sum}');
-      if [[ $GCcount -gt 0 ]] ; then {
-        echo $green"$GCcount instances of $white $red Full GCs $white $green found on $checkdate.$white $blue It can be ignored if its from system.gc or metadata GC threshold\n"$white | tee -a $Logpath/verifier.txt;
+      GCcount1=$(grep -c "$checkdate.*Full GC" $GCFilePath/*gc* | awk -F: '$2>0{sum+=$2}END{print sum}');
+      if [[ $GCcount1 -gt 0 ]] ; then {
+        echo $green"$GCcount1 instances of $white $red Full GCs $white $green found on $checkdate.$white $blue It can be ignored if its from system.gc or metadata GC threshold\n"$white | tee -a $Logpath/verifier.txt;
        }
-       else 
-       {
-         GCcount=$(grep -c "Full GC" $GCFilePath/*gc* | awk -F: '$2>0{sum+=$2}END{print sum}');
-         if [[ $GCcount -gt 0 ]] ; then {
-           echo $green"Instances of Full GC found but not on today or given date.$white $blue Verify the logs for historical full GCs.\n"$white | tee -a $Logpath/verifier.txt;	
-         }
-         else
-     	 {
-     	   echo $green"No Full GCs were found in the provided GC logs.\n"$white | tee -a $Logpath/verifier.txt;
-     	 }
-         fi
-       }
-       fi 
+      fi
+      
+      GCcount2=$(grep -c "Full GC" $GCFilePath/*gc* | awk -F: '$2>0{sum+=$2}END{print sum}');
+      if [[ $GCcount2 -gt 0 ]] ; then {
+        GCcount=$((GCcount2 - GCcount1))
+        echo $green"$GCcount Instances of Full GC found but not on today or given date.$white $blue Verify the logs for historical full GCs.\n"$white | tee -a $Logpath/verifier.txt;	
+      }
+      fi
+       
+      if [[ $GCcount1 -eq 0 && $GCcount2 -eq 0 ]] ; then {
+         echo $green"No Full GCs were found in the provided GC logs.\n"$white | tee -a $Logpath/verifier.txt;
+      }
+      fi
+
     }  
 else {
 	echo $cyan'No GC files of type atlassian-jira-gc found either in tomcat-logs or application-logs. Skipping GC checks\n'$white | tee -a $Logpath/verifier.txt;
@@ -206,12 +209,12 @@ ValidateCatalina()
   printf $combo'Checking stuck threads or memory issues in catalina.out : \n'$white | tee -a $Logpath/verifier.txt;	
   if [[ -f $CatalinalogPath/catalina.out ]] ; then {
 
-  maxsize=100000000;
+  maxsize=200000000;
   CatalinaFileSize=$(stat -f%z "$CatalinalogPath/catalina.out")
 
   #Check if the file size is greater than 100MB then avoid parsing it
   if (( $CatalinaFileSize > $maxsize )); then {
-    echo $cyan'Catalina.out file size is greater than 100MB. Skipping catalina.out checks. Please split the files to smaller ones or change the maxsize variable value in script and re-run it\n'$white | tee -a $Logpath/verifier.txt;
+    echo $cyan'Catalina.out file size is greater than 200MB. Skipping catalina.out checks. Please split the files to smaller ones or change the maxsize variable value in script and re-run it\n'$white | tee -a $Logpath/verifier.txt;
   }
   else 
 	{
@@ -230,14 +233,15 @@ ValidateCatalina()
       TDumpCount=$(grep -c "JNI global references" $CatalinalogPath/catalina.out);
       if [[ $TDumpCount -gt 0 ]] ; then {
       	  echo $green"Threads dumps seem to have been generated. Parsing thread dumps from catalina.out now and placing it in current directory. $white $blue Please verify if its valid for the current date\n"$white | tee -a $Logpath/verifier.txt;
-      	  awk '/Full thread dump/{n++;td=1;lastLine=$0;outFile=("thread_dump_" n ".txt")}; {if (td) {print $0 >> outFile; close(outFile)}}; /JNI global references/{if (lastLine ~ /garbage-first/ || lastLine ~ /Metaspace/) {td=0}}' $CatalinalogPath/catalina.out
-      	  ErrorAvail=1;
+          awk '/^[0-9]{4}-[0-9]{2}-[0-9]{2} [0-9]{2}:[0-9]{2}:[0-9]{2}$/{n++;td=1;lastLine=$0;outFile=("thread_dump_" n ".txt")}; {if (td) {print $0 >> outFile; close(outFile)}}; /JNI global references/{if (lastLine ~ /garbage-first/ || lastLine ~ /Metaspace/) {td=0}}' $CatalinalogPath/catalina.out
+          ErrorAvail=1;
       } 
       fi
-      StuckThreadCount=$(grep "org.apache.catalina.valves.StuckThreadDetectionValve.notifyStuckThreadDetected" $CatalinalogPath/catalina.out | awk '{print $(NF-13)}' | sed -e 's/\[//g' -e 's/\]//g' | awk '{if ($0>max) max=$0}END{print max}');
+      Finddate=$(date +%d-%b-%Y)
+      StuckThreadCount=$(grep $Finddate.*org.apache.catalina.valves.StuckThreadDetectionValve.notifyStuckThreadDetected $CatalinalogPath/catalina.out | awk '{print $(NF-13)}' | sed -e 's/\[//g' -e 's/\]//g' | awk '{if ($0>max) max=$0}END{print max}');
       if [[ $StuckThreadCount -gt 10 ]] ; then {
-      	  echo $green"Found $red $StuckThreadCount stuck threads $white $green at some point of time as per StuckThreadDetectionValve. $white $blue Please verify if its valid for the current date from catalina.out\n"$white | tee -a $Logpath/verifier.txt;
-      	  ErrorAvail=1;
+          echo $green"Found $red $StuckThreadCount stuck threads $white $green at some point of time today as per StuckThreadDetectionValve. $white $blue Please verify if its valid for the current date from catalina.out\n"$white | tee -a $Logpath/verifier.txt;
+          ErrorAvail=1;
       }
       fi
       if [[ $ErrorAvail -eq 0 ]] ; then {
@@ -260,6 +264,10 @@ ValidateInstDetails()
   if [[ -f $FolderPath/application-properties/application.xml ]] ; then {
   
   #Parse the application.xml file for JVM arguments
+
+  JiraVersion=$(grep -o "<Version>.*</Version>" $FolderPath/application-properties/application.xml | sed -e "s/<Version>//g" -e "s/<\/Version>//g" | tr ' ' '\n');
+  echo "\n$bold Jira Version $normal : $JiraVersion" | tee -a $Logpath/verifier.txt;
+
   NumOfProcs=$(grep -o "<available-processors>.*</available-processors>" $FolderPath/application-properties/application.xml | sed -e "s/<available-processors>//g" -e "s/<\/available-processors>//g" | tr ' ' '\n');
   echo "\n$bold Number of Processors $normal : $NumOfProcs" | tee -a $Logpath/verifier.txt;
 
@@ -269,9 +277,6 @@ ValidateInstDetails()
   NumOfIssues=$(grep -o "<Issues>.*</Issues>" $FolderPath/application-properties/application.xml | sed -e "s/<Issues>//g" -e "s/<\/Issues>//g" | tr ' ' '\n');
   echo "\n$bold Number of Issues $normal : $NumOfIssues" | tee -a $Logpath/verifier.txt; 
    
-  NumOfCustFields=$(grep -o "<ustom-Fields>.*</ustom-Fields>" $FolderPath/application-properties/application.xml | sed -e "s/<ustom-Fields>//g" -e "s/<\/ustom-Fields>//g" | tr ' ' '\n');
-  echo "\n$bold Number of Custom Fields $normal : $NumOfCustFields" | tee -a $Logpath/verifier.txt; 
-
   MaxFileDesc=$(grep -o "<max-file-descriptor>.*</max-file-descriptor>" $FolderPath/application-properties/application.xml | sed -e "s/<max-file-descriptor>//g" -e "s/<\/max-file-descriptor>//g" | tr ' ' '\n');
   echo "\n$bold Max File Descriptor $normal : $MaxFileDesc" | tee -a $Logpath/verifier.txt; 
 
