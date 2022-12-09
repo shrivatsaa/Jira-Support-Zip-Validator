@@ -50,7 +50,7 @@ else
   sedvar='-e'
 fi
 
-#Get the count of defined error message and make the suggestion
+#Get the date if give or assign to the current date
 if [[ $2 != "" ]] ; then {
   checkdate=$2
 } 
@@ -73,7 +73,7 @@ ValidateHealthCheck()
 {
   printf $combo'List of healtcheck failures : \n'$white | tee -a $Logpath/verifier.txt;	
   if [[ -f $HealthcheckFile ]] ; then {
-    grep -h -A1 -B1 "Is healthy: false" $HealthcheckFile | grep -v "\-\-" |grep -v "Is healthy" |  awk 'NR%2!=0{key1=$0;getline;key2=$0;print key1" ---> "key2}' | tee -a $Logpath/verifier.txt;
+    awk -v RS="" -v ORS="\n\n" '/Is healthy: false/{print}' $HealthcheckFile | awk -v RS="\n\n" -v FS="\n" '{for(i=1;i<=NF;i++){if($i~/Name/){key1=$i} else if($i~/Failure/){key2=$i}}{print key1" ----> "key2}}'
   }
   else 
   {
