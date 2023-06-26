@@ -1,6 +1,30 @@
-java.lang.StackOverflowError|Look out for stuck threads and application stalling. Refer https://confluence.atlassian.com/jirakb/jira-applications-stall-due-to-stackoverflowerror-exception-941601100.html
-Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html
-Wait attempt timed out - waited|Look out for indexing and snapshot restore failures. Also look for nodereindexing threads or clustermessagehandler threads timing out waiting for index lock
-Detected frequent flushes|Look out indexing related slowness. Refer https://confluence.atlassian.com/jirakb/jira-indexing-performance-and-lucene-maxrambuffermb-963659203.html
+# Message list for performance log messages
+Performance_Log_Messages
+java.lang.StackOverflowError|Look out for stuck threads and application stalling. Refer https://confluence.atlassian.com/jirakb/jira-applications-stall-due-to-stackoverflowerror-exception-941601100.html.
+Wait attempt timed out - waited|Look out for indexing and snapshot restore failures. Also look for nodereindexing threads or clustermessagehandler threads or RMI performing DBR, timing out waiting for index lock
 Bigpipe taking longer than 5s|Look out for cpu usage and other performance issues.
-Unable to obtain a connection from the underlying connection pool|Verify any connection errors, stuck threads, full GCs or system resource overrun. Refer https://confluence.atlassian.com/adminjiraserver073/surviving-connection-closures-861253055.html
+There was an error getting a DBCP datasource|Verify any connection errors, stuck threads, full GCs or system resource overrun. Refer https://confluence.atlassian.com/adminjiraserver073/surviving-connection-closures-861253055.html
+Dangerous use of multiple connections|Check for any plugins using multiple connections in the logs.
+ProductSeparator
+
+# Message list for Jira Software log messages
+JSW_Log_Messages
+Passed List had more than one value|There are duplicate entries in some jira tables. Refer https://confluence.atlassian.com/jirakb/jira-throws-caused-by-java-lang-illegalargumentexception-passed-list-had-more-than-one-value-when-viewing-an-issue-836601834.html
+Internal Server Error|There are possible nullpointer exceptions thrown with "Internal Server Error". Please check on the corresponding stack trace
+java.lang.NullPointerException|Check for any reported issues on the JIRA UI such as boards or issue or screen pages throwing errors
+ProductSeparator
+
+# Message list for Jira Service Management log messages
+JSM_Log_Messages
+---------------
+ProductSeparator
+
+# Message list for Insight log messages
+Insight_Log_Messages
+"insight-InsightImportThreadGroup-worker.*JVM Memory level low|https://confluence.atlassian.com/servicemanagementserver/installing-assets-1044784413.html" 
+ProductSeparator
+
+# Message list for Advanced Roadmap messages
+Advanced_RoadMaps
+-----------------
+ProductSeparator
