@@ -1,16 +1,36 @@
 # Jira-Support-Zip-Validator
-The idea behind the support Zip Validator is to provide a consolidated overview of all these relevant files and provide an assessment of any known errors or issues that we know from our experience. It can be run individually or along with a data file LogErrorDataFile.txt filled already with the list of errors that we usually associate with indexing and performance problems. It can also be modified to add more error messages to look for based on your troubleshooting experience. In case you want to skip the data file, fill in the same error messages in the script file itself. 
+The idea behind the support Zip Validator is to provide a consolidated overview of all these relevant files and provide an assessment of any known errors or issues that we know from our experience. The script scans through different log files in the support zip and makes insights out of it without the need to manually parse them. This is an accessory to other UI and non-UI based tools that you are currently utilizing to parse logs, parse thread dumps, plot graphs independently, by providing a consolidated overview and inferring suggestions and insights out of the various log files. This tool is essentially meant to provide a good enough first shot to take to solving problems, followed by which you can utilize the existing tools for detailed analysis.
 
-Run the script in one of the following ways:
+First things first, the script is run with a general format as below
+./szvalidator.sh -p <Product(optional)> <folderName> <Date(optional)>
 
-The below would validate all the logs for the current date. But also look for known error messages that has happened in the past. 
+The date and the product, qualified by the option -p are optional. They default to the current date when date is not given, while the support zip folder name with any spaces removed is necessary. The option -p will be explained later down the line. In its simplest form it can be run as before
+./szvalidator.sh <foldername> <Date(optional)>
 
-./szvalidator.sh <Unzipped support folder path>
+The script parses and provides analysis of the following folders and files in the support zip.
 
-The below would look for all the error messages and other issues for the specific date that is provided and also report on any historical error messages including current date for root cause analysis.
+Healthcheck.txt - Highlights the healthchecks that failed and need review
 
-./szvalidator.sh <Unzipped support folder path> <date in YYYY-MM-DD format>
+atlassian-jira.log - It might require a little more detail and context on how this log is parsed,since it differs a bit from the earlier version of the script. Similar to hercules that scans the log files for well known errors and makes suggestions, the script uses a data file ‘LogErrorData.txt’ to look for list of errors and make corresponding suggestions. Rather than use an exhaustive list, which consumes a lot of time to parse, its left to us end users, to define well known and critical errors you look for in a product and corresponding suggestions, which could be a KB link or product guide.
 
-As mentioned earlier add the known error messages followed by the suggestion or related KB in LogErrorDataFile.txt file for future use. Currently its pre-filled with some commonly known problems. Error message to be scanned are entered in the format of Error meessage|suggestion with error message and suggestion separated by a pipe. Ex.
+The list of error messages would be defined under a header of the format <product>_Log_Messages and footer ProductSeparator. A lookup table is defined inside the script to identify what messages to scan for in the application log, based on the value provided for option -p in the above script. The valid values for -p are 'JSW', 'Perf', 'JSM', 'Insight', 'Roadmaps'.
 
-Indexing failed for Issue|Indexing errors seen for issues. Refer https://confluence.atlassian.com/jirakb/troubleshoot-a-reindex-failure-in-jira-server-429917142.html
+So the following would scan the log for Jira Software related error messages that you define in the LogErrorData.txt file under the header JSW_Log_Messages and footer ProductSeparator
+
+./szvalidatorNew.sh -p JSW supportzip_folder_2023-05-23
+
+The following would scan only for performance related problems in the application log for performance related error messages that you define in the LogErrorData.txt file under the header Performance_Log_Messages and footer ProductSeparator
+
+./szvalidatorNew.sh -p perf supportzip_folder_2023-05-23
+
+GC logs - Will scan for full GC occurrences in both openjdk and oracle JDK format files for the current date. It will also additionally scan for any GC incidents in the past 6 days.
+
+catalina.out - Scan for heap dump file names and out of memory errors, information on stuck threads from struckthreaddetectionvalve, thread dumps if generated will be parsed and dumped in the folder where script is run from.
+
+Thread dump analysis - A thread dump overview with user and url details will be provided from the last five threads generated from the JFR, when enabled, for 9.x versions. Otherwise the support tool generated thread dumps will be parsed and analyzed. The number of thread dumps parsed is limited to 4 for readability in a shell window. The thread dump analysis also provides information on top requests and users and additionally lists down the object monitor locks and threads waiting on these monitor locks.
+
+DBR related statistics - DBR(Document based replication) stats are parsed and any long breach of the threshold for these statistics are noted and corresponding warning for on IO and network latency are raised.
+
+atlassian-perf.log - Some of the jmx metrics dumped in these logs are parsed for any concerning trends such as high load averages, thread counts etc.
+
+Finally a suggestion list is generated with a category of critical, Major and minor suggestions along with errors found from application log messages. This will provide an overview of what needs to be immediately addressed and reviewed.
