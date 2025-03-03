@@ -24,13 +24,21 @@ The following would scan only for performance related problems in the applicatio
 ./szvalidatorNew.sh -p perf supportzip_folder_2023-05-23
 
 GC logs - Will scan for full GC occurrences in both openjdk and oracle JDK format files for the current date. It will also additionally scan for any GC incidents in the past 6 days.
+![image](https://github.com/user-attachments/assets/330b127b-8dbd-4ec9-b2d9-16dfbe38f99f)
 
 catalina.out - Scan for heap dump file names and out of memory errors, information on stuck threads from struckthreaddetectionvalve, thread dumps if generated will be parsed and dumped in the folder where script is run from.
+![image](https://github.com/user-attachments/assets/ada7daf7-6fad-4b5c-a43e-61b157941d5a)
 
 Thread dump analysis - A thread dump overview with user and url details will be provided from the last five threads generated from the JFR, when enabled, for 9.x versions. Otherwise the support tool generated thread dumps will be parsed and analyzed. The number of thread dumps parsed is limited to 4 for readability in a shell window. The thread dump analysis also provides information on top requests and users and additionally lists down the object monitor locks and threads waiting on these monitor locks.
+![image](https://github.com/user-attachments/assets/90a31b3b-c100-458a-9f7d-5ad785cbd22e)
 
 DBR related statistics - DBR(Document based replication) stats are parsed and any long breach of the threshold for these statistics are noted and corresponding warning for on IO and network latency are raised.
+![image](https://github.com/user-attachments/assets/4e06a092-0413-45f7-904c-f114c8eaf35e)
 
 atlassian-perf.log - Some of the jmx metrics dumped in these logs are parsed for any concerning trends such as high load averages, thread counts etc.
+![image](https://github.com/user-attachments/assets/d54f0874-e217-4e1e-9c4d-d634c5f67ade)
 
 Finally a suggestion list is generated with a category of critical, Major and minor suggestions along with errors found from application log messages. This will provide an overview of what needs to be immediately addressed and reviewed.
+![image](https://github.com/user-attachments/assets/9ba9962f-38ce-4817-ab64-dce857c03dcf)
+
+
