@@ -30,7 +30,8 @@ catalina.out - Scan for heap dump file names and out of memory errors, informati
 ![image](https://github.com/user-attachments/assets/ada7daf7-6fad-4b5c-a43e-61b157941d5a)
 
 Thread dump analysis - A thread dump overview with user and url details will be provided from the last five threads generated from the JFR, when enabled, for 9.x versions. Otherwise the support tool generated thread dumps will be parsed and analyzed. The number of thread dumps parsed is limited to 4 for readability in a shell window. The thread dump analysis also provides information on top requests and users and additionally lists down the object monitor locks and threads waiting on these monitor locks.
-![image](https://github.com/user-attachments/assets/90a31b3b-c100-458a-9f7d-5ad785cbd22e)
+<img width="1738" alt="Thread_Dump_Analysis" src="https://github.com/user-attachments/assets/44a8f9c6-019b-48c5-9c24-36b247ebdfb1" />
+
 
 DBR related statistics - DBR(Document based replication) stats are parsed and any long breach of the threshold for these statistics are noted and corresponding warning for on IO and network latency are raised.
 ![image](https://github.com/user-attachments/assets/4e06a092-0413-45f7-904c-f114c8eaf35e)
